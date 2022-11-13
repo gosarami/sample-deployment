@@ -1,0 +1,6 @@
+domain: gosarami.github.io
+layout:
+- go.kubebuilder.io/v3
+projectName: sample-deployment
+repo: github.com/gosarami/sample-deployment
+version: "3"
