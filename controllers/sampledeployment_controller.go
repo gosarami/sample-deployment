@@ -19,9 +19,11 @@ package controllers
 import (
 	"context"
 
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	samplev1 "github.com/gosarami/sample-deployment/api/v1"
@@ -38,18 +40,89 @@ type SampleDeploymentReconciler struct {
 //+kubebuilder:rbac:groups=sample.gosarami.github.io,resources=sampledeployments/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
-// move the current state of the cluster closer to the desired state.
+// move the current state of the sample closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
-// the SampleDeployment object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
+// the SampleDeployment object against the actual sample state, and then
+// perform operations to make the sample state reflect the state specified by
 // the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *SampleDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	//_ = log.FromContext(ctx)
+	logger := log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	var sampleDeployment samplev1.SampleDeployment
+
+	err := r.Get(ctx, req.NamespacedName, &sampleDeployment)
+	if errors.IsNotFound(err) {
+		return ctrl.Result{}, nil
+	}
+	if err != nil {
+		logger.Error(err, "unable to get SampleDeployment", "name", req.NamespacedName)
+		return ctrl.Result{}, err
+	}
+
+	if err := r.reconcileSample(ctx, sampleDeployment); err != nil {
+		logger.Error(err, "unable to reconsile Cluster", "name", req.NamespacedName)
+		return ctrl.Result{}, err
+	}
+
+	if !sampleDeployment.ObjectMeta.DeletionTimestamp.IsZero() {
+		return ctrl.Result{}, nil
+	}
+
+	return r.updateStatus(ctx, sampleDeployment)
+}
+
+func (r *SampleDeploymentReconciler) reconcileSample(ctx context.Context, sampleDeployment samplev1.SampleDeployment) error {
+	logger := log.FromContext(ctx)
+
+	sample := &samplev1.Sample{}
+	sample.SetNamespace(sampleDeployment.Namespace)
+	sample.SetName("sample-1")
+
+	op, err := ctrl.CreateOrUpdate(ctx, r.Client, sample, func() error {
+		if sample.Spec.Version == "" {
+			sample.Spec.Version = sampleDeployment.Spec.Version
+		}
+		return ctrl.SetControllerReference(&sampleDeployment, sample, r.Scheme)
+	})
+
+	if err != nil {
+		logger.Error(err, "unable to create or update Sample")
+		return err
+	}
+	if op != controllerutil.OperationResultNone {
+		logger.Info("reconcile Sample successfully", "op", op)
+	}
+	return nil
+}
+
+func (r *SampleDeploymentReconciler) updateStatus(ctx context.Context, sampleDeployment samplev1.SampleDeployment) (ctrl.Result, error) {
+	var sample samplev1.Sample
+	if err := r.Get(
+		ctx,
+		client.ObjectKey{
+			Namespace: sampleDeployment.Namespace,
+			//			Name:      getSampleName(sampleDeployment),
+		},
+		&sample,
+	); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	/*
+		var status samplev1.SampleDeploymentStatus
+		status.Sample.Status = "TBD"
+
+		if sampleDeployment.Status != status {
+			sampleDeployment.Status = status
+			if err := r.Status().Update(ctx, &sampleDeployment); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+	*/
 
 	return ctrl.Result{}, nil
 }
@@ -58,5 +131,6 @@ func (r *SampleDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Req
 func (r *SampleDeploymentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&samplev1.SampleDeployment{}).
+		Owns(&samplev1.Sample{}).
 		Complete(r)
 }

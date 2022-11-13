@@ -23,17 +23,16 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// SampleDeploymentSpec defines the desired state of SampleDeployment
-type SampleDeploymentSpec struct {
+// SampleSpec defines the desired state of Sample
+type SampleSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of SampleDeployment. Edit sampledeployment_types.go to remove/update
 	Version string `json:"version,omitempty"`
 }
 
-// SampleDeploymentStatus defines the observed state of SampleDeployment
-type SampleDeploymentStatus struct {
+// SampleStatus defines the observed state of Sample
+type SampleStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
@@ -41,24 +40,24 @@ type SampleDeploymentStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// SampleDeployment is the Schema for the sampledeployments API
-type SampleDeployment struct {
+// Sample is the Schema for the samples API
+type Sample struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   SampleDeploymentSpec   `json:"spec,omitempty"`
-	Status SampleDeploymentStatus `json:"status,omitempty"`
+	Spec   SampleSpec   `json:"spec,omitempty"`
+	Status SampleStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// SampleDeploymentList contains a list of SampleDeployment
-type SampleDeploymentList struct {
+// SampleList contains a list of Sample
+type SampleList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []SampleDeployment `json:"items"`
+	Items           []Sample `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&SampleDeployment{}, &SampleDeploymentList{})
+	SchemeBuilder.Register(&Sample{}, &SampleList{})
 }
