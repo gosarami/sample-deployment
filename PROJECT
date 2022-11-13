@@ -3,4 +3,14 @@ layout:
 - go.kubebuilder.io/v3
 projectName: sample-deployment
 repo: github.com/gosarami/sample-deployment
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: gosarami.github.io
+  group: sample
+  kind: SampleDeployment
+  path: github.com/gosarami/sample-deployment/api/v1
+  version: v1
 version: "3"

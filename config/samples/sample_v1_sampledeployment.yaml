@@ -1,0 +1,12 @@
+apiVersion: sample.gosarami.github.io/v1
+kind: SampleDeployment
+metadata:
+  labels:
+    app.kubernetes.io/name: sampledeployment
+    app.kubernetes.io/instance: sampledeployment-sample
+    app.kubernetes.io/part-of: sample-deployment
+    app.kuberentes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: sample-deployment
+  name: sampledeployment-sample
+spec:
+  # TODO(user): Add fields here

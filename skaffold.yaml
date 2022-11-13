@@ -1,0 +1,13 @@
+apiVersion: skaffold/v3
+kind: Config
+metadata:
+  name: markdown-view
+build:
+  artifacts:
+  - image: localhost:5001/controller
+    docker:
+      dockerfile: Dockerfile
+manifests:
+  kustomize:
+    paths:
+    - config/default
